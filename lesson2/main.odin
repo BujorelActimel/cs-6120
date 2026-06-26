@@ -7,15 +7,22 @@ import "core:encoding/json"
 
 Argument :: struct {
     name: string,
-    type: json.Value,
+    type: string,
+}
+
+Value :: union {
+    string,
+    bool,
+    int,
+    f64,
 }
 
 Instr :: struct {
     label:  string,
     op:     string,
     dest:   string,
-    type:   json.Value,  // optional; absent on effect ops and labels
-    value:  json.Value,  // only on const
+    type:   string,
+    value:  Value,
     args:   []string,
     funcs:  []string,
     labels: []string,
@@ -24,7 +31,7 @@ Instr :: struct {
 Function :: struct {
     name:   string,
     args:   []Argument,
-    type:   json.Value,  // optional return type
+    type:   string,
     instrs: []Instr,
 }
 
@@ -51,22 +58,41 @@ main :: proc() {
         return
     }
 
-    fmt.println(program)
+    blocks := get_blocks(program.functions[0].instrs)
+
+    for block in blocks {
+        fmt.println(block)
+    }
 }
 
 get_blocks :: proc(instrs: []Instr) -> []Block {
     blocks := make([dynamic]Block)
     curr_instrs := make([dynamic]Instr)
-    curr_label := fmt.aprintf("block-%d", len(curr_instrs))
+    curr_label := ""
+
+    flush :: proc(blocks: ^[dynamic]Block, curr_instrs: ^[dynamic]Instr, curr_label: ^string) {
+        if len(curr_instrs^) == 0 { return }
+        if curr_label^ == "" {
+            curr_label^ = fmt.aprintf("block-%d", len(blocks^))
+        }
+        append(blocks, Block{curr_label^, slice.clone(curr_instrs[:])})
+        curr_label^ = ""
+        clear(curr_instrs)
+    }
 
     for instr in instrs {
-        if instr.label != "" { 
-            // label instruction
+        if instr.label != "" {
+            flush(&blocks, &curr_instrs, &curr_label)
+            curr_label = instr.label
+            continue
         }
+        append(&curr_instrs, instr)
         if slice.contains(TERMINATORS, instr.op) {
-            // terminal instruction
+            flush(&blocks, &curr_instrs, &curr_label)
         }
     }
+
+    flush(&blocks, &curr_instrs, &curr_label)
 
     return blocks[:]
 }
