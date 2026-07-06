@@ -46,6 +46,8 @@ Block :: struct {
 
 TERMINATORS : []string = {"jmp", "br", "ret"}
 
+CFG :: map[string][]string
+
 main :: proc() {
     data, err := os.read_entire_file_from_file(os.stdin, context.allocator)
     if err != nil {
@@ -102,8 +104,8 @@ get_blocks :: proc(instrs: []Instr) -> []Block {
     return blocks[:]
 }
 
-compute_cfg :: proc(blocks: []Block) -> map[string][]string {
-    cfg := make(map[string][]string)
+compute_cfg :: proc(blocks: []Block) -> CFG {
+    cfg := make(CFG)
 
     for block, i in blocks {
         last_instr := block.instrs[len(block.instrs)-1]
