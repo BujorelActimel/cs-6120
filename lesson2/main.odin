@@ -125,3 +125,38 @@ compute_cfg :: proc(blocks: []Block) -> CFG {
     }
     return cfg
 }
+
+
+/*
+    // Pseudocode for removing unused variables
+    used: map[str]bool
+    for instr in func {
+        if instr is asignement {
+            used[instr.dest] = false
+        }
+        elif instr is call {
+            for arg in instr.args {
+                used[arg] = true // asuming there are no undeclared used used
+            }
+        }
+    }
+
+    for var in used {
+        if not used[var] then eliminate var
+    }
+*/
+
+/*
+    // Pseudocode for removing dead assignments (in the context of a single simple block)
+    used: map[str]bool
+    for instr in block {
+        if instr is asignement {
+            var = instr.dest
+            if var not in used or used[var]:
+                used[var] = false
+            else:
+                eliminate prev assingnment
+        }
+    }
+
+*/
