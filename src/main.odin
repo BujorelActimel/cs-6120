@@ -5,6 +5,7 @@ import "core:fmt"
 import "core:encoding/json"
 import "bril"
 import "cfg"
+import opt "optimizations"
 
 main :: proc() {
     data, err := os.read_entire_file_from_file(os.stdin, context.allocator)
@@ -28,27 +29,19 @@ main :: proc() {
             fmt.printfln("%s ---> %v", block.label, cfg_map[block.label])
         }
     }
+
+    fmt.println("Before opt: ")
+    for instr in program.functions[0].instrs {
+        fmt.println(instr)
+    }
+    
+    new := opt.remove_unused_vars(program.functions[0].instrs)
+
+    fmt.println("After opt: ")
+    for instr in new {
+        fmt.println(instr)
+    }
 }
-
-
-/*
-    // Pseudocode for removing unused variables
-    used: map[str]bool
-    for instr in func {
-        if instr is asignement {
-            used[instr.dest] = false
-        }
-        elif instr is call {
-            for arg in instr.args {
-                used[arg] = true // asuming there are no undeclared used used
-            }
-        }
-    }
-
-    for var in used {
-        if not used[var] then eliminate var
-    }
-*/
 
 /*
     // Pseudocode for removing dead assignments (in the context of a single simple block)
