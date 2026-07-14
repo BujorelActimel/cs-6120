@@ -1,26 +1,8 @@
 package optimizations
 
-import "../cfg"
+import "core:slice"
 import "../bril"
 
-/*
-    // Pseudocode for removing unused variables
-    used: map[str]bool
-    for instr in func {
-        if instr is asignement {
-            used[instr.dest] = false
-        }
-        elif instr is call {
-            for arg in instr.args {
-                used[arg] = true // asuming there are no undeclared used vars
-            }
-        }
-    }
-
-    for var in used {
-        if not used[var] then eliminate var
-    }
-*/
 remove_unused_vars :: proc(instrs: []bril.Instr) -> []bril.Instr {
     used := make_map(map[string]bool)
     for instr in instrs {
@@ -43,4 +25,14 @@ remove_unused_vars :: proc(instrs: []bril.Instr) -> []bril.Instr {
     }
 
     return new_instructions[:]
+}
+
+remove_unused_vars_multi_pass :: proc(instrs: []bril.Instr) -> []bril.Instr {
+    curr_instr := instrs
+    new_instrs := remove_unused_vars(curr_instr)
+    for len(new_instrs) != len(curr_instr) {
+        curr_instr = slice.clone(new_instrs)
+        new_instrs = remove_unused_vars(curr_instr)
+    }
+    return new_instrs
 }

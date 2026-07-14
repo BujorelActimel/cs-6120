@@ -35,25 +35,15 @@ main :: proc() {
         fmt.println(instr)
     }
     
+    fmt.println("After one pass: ")
     new := opt.remove_unused_vars(program.functions[0].instrs)
+    for instr in new {
+        fmt.println(instr)
+    }
 
-    fmt.println("After opt: ")
+    fmt.println("After multi pass: ")
+    new = opt.remove_unused_vars_multi_pass(program.functions[0].instrs)
     for instr in new {
         fmt.println(instr)
     }
 }
-
-/*
-    // Pseudocode for removing dead assignments (in the context of a single simple block)
-    used: map[str]bool
-    for instr in block {
-        if instr is asignement {
-            var = instr.dest
-            if var not in used or used[var]:
-                used[var] = false
-            else:
-                eliminate prev assingnment
-        }
-    }
-
-*/
